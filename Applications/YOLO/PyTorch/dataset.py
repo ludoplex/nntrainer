@@ -34,7 +34,7 @@ class YOLODataset(Dataset):
             label_bbox = []
             label_cls = []
             with open(ann_list[i], 'rt') as f:
-                for line in f.readlines():
+                for line in f:
                     line = [float(i) for i in line.split()]
                     label_bbox.append(np.array(line[1:], dtype=np.float32) / 416)
                     label_cls.append(int(line[0]))

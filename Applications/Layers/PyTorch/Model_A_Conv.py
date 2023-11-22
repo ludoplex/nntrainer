@@ -48,8 +48,7 @@ class NeuralNetwork(nn.Module):
         )
 
     def forward(self, x):
-        logits = self.NN_stack(x)
-        return logits
+        return self.NN_stack(x)
 
 
 def train(dataloader, model, loss_fn, optimizer):

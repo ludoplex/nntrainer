@@ -54,7 +54,7 @@ def extract_features(path, index, val):
 
     label_name = np.array(label)
 
-    path = path + "/train/"
+    path = f"{path}/train/"
     class_id = 0
 
     if(val == True):

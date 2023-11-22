@@ -41,7 +41,7 @@ m = Model()
 m.model.summary()
 np.random.seed(1234)
 
-for i in range(NUM_EPOCHS):
+for _ in range(NUM_EPOCHS):
     x_train = np.random.randint(0, 255, (BATCH_SIZE, IMG_SIZE))
     y_train = np.random.randint(
         0, 1, (BATCH_SIZE, OUTPUT_SIZE)).astype(np.float32)

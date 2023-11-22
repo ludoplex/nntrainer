@@ -25,27 +25,26 @@ def calculate_iou(bbox1, bbox2):
     b1x2, b1y2 = (bbox1[:, :2] + (bbox1[:, 2:4])).split(1, 1)
     b2x1, b2y1 = (bbox2[:, :2]).split(1, 1)
     b2x2, b2y2 = (bbox2[:, :2] + (bbox2[:, 2:4])).split(1, 1)
-    
+
     # box areas
     areas1 = (b1x2 - b1x1) * (b1y2 - b1y1)
     areas2 = (b2x2 - b2x1) * (b2y2 - b2y1)
-    
+
     # intersections
     min_x_of_max_x, max_x_of_min_x = torch.min(b1x2, b2x2), torch.max(b1x1, b2x1)
     min_y_of_max_y, max_y_of_min_y = torch.min(b1y2, b2y2), torch.max(b1y1, b2y1)
     intersection_width = (min_x_of_max_x - max_x_of_min_x).clamp(min=0)
     intersection_height = (min_y_of_max_y - max_y_of_min_y).clamp(min=0)
     intersections = intersection_width * intersection_height
-    
+
     # unions        
     unions = (areas1 + areas2) - intersections
-    
-    result = intersections / unions    
-    return result
+
+    return intersections / unions
 
 ##
 # @brief find best iou and its index
-def find_best_ratio(anchors, bbox):    
+def find_best_ratio(anchors, bbox):
     """
     @param anchors shape(numb_of_anchors, 2), it contains w, h
     @param bbox shape(numb_of_bbox, 2), it contains w, h
@@ -54,8 +53,7 @@ def find_best_ratio(anchors, bbox):
     b1 = np.divide(anchors[:, 0], anchors[:, 1])
     b2 = np.divide(bbox[:, 0], bbox[:, 1])
     similarities = np.abs(b1.reshape(-1, 1) - b2)
-    best_match = np.argmin(similarities, axis=0)
-    return best_match
+    return np.argmin(similarities, axis=0)
 
 ##
 # @brief loss class for yolo
@@ -91,15 +89,14 @@ class YoloV2_LOSS(nn.Module):
     def print_hook_variables(self):
         """ Do not use this function when training. It is for debugging. """
         for k, var in self.hook.items():
-            print("gradients of variable {}:".format(k))
+            print(f"gradients of variable {k}:")
             batch, channel, height, width = var.grad.shape
             for b in range(batch):
                 for c in range(channel):
                     for h in range(height):
                         for w in range(width):
                             if torch.abs(var.grad[b, c, h, w]).item() >= 1e-3:
-                                print("(b: {}, c: {}, h: {}, w: {}) = {}"\
-                                      .format(b, c, h, w, var.grad[b, c, h, w]))
+                                print(f"(b: {b}, c: {c}, h: {h}, w: {w}) = {var.grad[b, c, h, w]}")
             print("=" * 20)
         
     def forward(self, bbox_pred, iou_pred, prob_pred, bbox_gt, cls_gt):        

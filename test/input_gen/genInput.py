@@ -120,7 +120,7 @@ def conv2d_tf(x, kernel, batch, width, height, channel, k_width, k_height, k_num
         sess.run(tf.global_variables_initializer())
 
         conv2d_result, grad_result, _ = sess.run([conv2d_layer, grad, train_op], feed_dict={tf_input: x})
-        for i in range(0,num_loop):
+        for _ in range(0,num_loop):
             conv2d_result2, grad_result2, _ = sess.run([conv2d_layer, grad, train_op], feed_dict={tf_input: x})
 
     if DEBUG:
@@ -323,11 +323,9 @@ def fc_tf(x, kernel, label, bias, activation, train=False, loss='mse', opt='sgd'
                 train_op = optimizer.apply_gradients(list(zip(tf_grad[1:], trainable_variables)))
 
                 var_to_run = [tf_logit, tf_loss, tf_grad, train_op]
-                feed_dict = {tf_input: x, tf_label: label}
             else:
                 var_to_run = [tf_logit, tf_loss]
-                feed_dict = {tf_input: x, tf_label: label}
-
+            feed_dict = {tf_input: x, tf_label: label}
             sess.run(tf.compat.v1.global_variables_initializer())
             if DEBUG:
                 old_w = sess.run(tf.compat.v1.trainable_variables())
@@ -415,63 +413,102 @@ def bn_tf(x, *, trainable=True, init_beta=gen_tensor, init_gamma=gen_tensor, axi
         print("======================================")
         print("Input:\n %s\n Output:\n %s"  % (x[0], bn_result[0]))
         tf.print("params: %s \n" % (old_var))
-        print("dx: %s" % grad_result)
+        print(f"dx: {grad_result}")
         print("======================================")
 
     return old_var, output_variables, grad_result, backward_input
 
 
 def gen_test_case_conv(i_b, i_c, i_h, i_w, k_c, k_h, k_w, padding, stride, bias, base_name, num_loop):
-    x=gen_input(base_name+"_conv2DLayer.in", [i_b, i_c, i_h, i_w])
-    kernel=gen_input(base_name+"_conv2DKernel.in", [k_c, i_c, k_h, k_w])
-    with open(base_name+"_conv2DKernel.in", 'ab') as outfile:
+    x = gen_input(f"{base_name}_conv2DLayer.in", [i_b, i_c, i_h, i_w])
+    kernel = gen_input(f"{base_name}_conv2DKernel.in", [k_c, i_c, k_h, k_w])
+    with open(f"{base_name}_conv2DKernel.in", 'ab') as outfile:
         np.array(bias, dtype=np.float32).tofile(outfile)
 
     golden_conv, golden_grad_input, golden_grad_kernel, golden_grad_bias, \
         golden_conv2, golden_grad_input2, golden_grad_kernel2, golden_grad_bias2 = \
         conv2d_tf(x, kernel, i_b, i_h, i_w, i_c, k_h, k_w, k_c, stride, padding, bias, num_loop)
-    save(base_name+"_goldenConv2DResult.out", np.transpose(golden_conv,(0,3,1,2)))
-    save(base_name+"_goldenInputGrad.out", np.transpose(golden_grad_input,(0,3,1,2)))
-    save(base_name+"_goldenKernelGrad.out", np.transpose(golden_grad_kernel,(3,2,0,1)))
-    save(base_name+"_goldenBiasGrad.out", golden_grad_bias)
-    save(base_name+"_goldenConv2DResult2.out", np.transpose(golden_conv2,(0,3,1,2)))
-    save(base_name+"_goldenInputGrad2.out", np.transpose(golden_grad_input2,(0,3,1,2)))
-    save(base_name+"_goldenKernelGrad2.out", np.transpose(golden_grad_kernel2,(3,2,0,1)))
-    save(base_name+"_goldenBiasGrad2.out", golden_grad_bias2)
+    save(
+        f"{base_name}_goldenConv2DResult.out",
+        np.transpose(golden_conv, (0, 3, 1, 2)),
+    )
+    save(
+        f"{base_name}_goldenInputGrad.out",
+        np.transpose(golden_grad_input, (0, 3, 1, 2)),
+    )
+    save(
+        f"{base_name}_goldenKernelGrad.out",
+        np.transpose(golden_grad_kernel, (3, 2, 0, 1)),
+    )
+    save(f"{base_name}_goldenBiasGrad.out", golden_grad_bias)
+    save(
+        f"{base_name}_goldenConv2DResult2.out",
+        np.transpose(golden_conv2, (0, 3, 1, 2)),
+    )
+    save(
+        f"{base_name}_goldenInputGrad2.out",
+        np.transpose(golden_grad_input2, (0, 3, 1, 2)),
+    )
+    save(
+        f"{base_name}_goldenKernelGrad2.out",
+        np.transpose(golden_grad_kernel2, (3, 2, 0, 1)),
+    )
+    save(f"{base_name}_goldenBiasGrad2.out", golden_grad_bias2)
 
 def gen_test_case_conv_2layers(base_name):
-    x=gen_input(base_name+"_conv2DLayer.in", [1, 3, 28, 28])
-    kernel=gen_input(base_name+"_conv2DKernel.in", [6, 3, 5, 5])
+    x = gen_input(f"{base_name}_conv2DLayer.in", [1, 3, 28, 28])
+    kernel = gen_input(f"{base_name}_conv2DKernel.in", [6, 3, 5, 5])
     bias = np.ones(6)
-    with open(base_name+"_conv2DKernel.in", 'ab') as outfile:
+    with open(f"{base_name}_conv2DKernel.in", 'ab') as outfile:
         np.array(bias, dtype=np.float32).tofile(outfile)
-    kernel2=gen_input(base_name+"_conv2DKernel2.in", [12, 6, 1, 1])
+    kernel2 = gen_input(f"{base_name}_conv2DKernel2.in", [12, 6, 1, 1])
     bias2 = np.ones(12)
-    with open(base_name+"_conv2DKernel2.in", 'ab') as outfile:
+    with open(f"{base_name}_conv2DKernel2.in", 'ab') as outfile:
         np.array(bias2, dtype=np.float32).tofile(outfile)
 
     golden_conv, golden_conv2, golden_grads = conv2d_tf_2(x, kernel, bias, kernel2, bias2)
-    save(base_name+"_goldenConv2DResult.out", np.transpose(golden_conv,(0,3,1,2)))
-    save(base_name+"_goldenConv2DResult2.out", np.transpose(golden_conv2,(0,3,1,2)))
-    save(base_name+"_goldenInputGrad.out", np.transpose(golden_grads[0],(0,3,1,2)))
-    save(base_name+"_goldenKernelGrad.out", np.transpose(golden_grads[1],(3,2,0,1)))
-    save(base_name+"_goldenBiasGrad.out", golden_grads[2])
-    save(base_name+"_goldenKernel2Grad.out", np.transpose(golden_grads[3],(3,2,0,1)))
-    save(base_name+"_goldenBias2Grad.out", golden_grads[4])
+    save(
+        f"{base_name}_goldenConv2DResult.out",
+        np.transpose(golden_conv, (0, 3, 1, 2)),
+    )
+    save(
+        f"{base_name}_goldenConv2DResult2.out",
+        np.transpose(golden_conv2, (0, 3, 1, 2)),
+    )
+    save(
+        f"{base_name}_goldenInputGrad.out",
+        np.transpose(golden_grads[0], (0, 3, 1, 2)),
+    )
+    save(
+        f"{base_name}_goldenKernelGrad.out",
+        np.transpose(golden_grads[1], (3, 2, 0, 1)),
+    )
+    save(f"{base_name}_goldenBiasGrad.out", golden_grads[2])
+    save(
+        f"{base_name}_goldenKernel2Grad.out",
+        np.transpose(golden_grads[3], (3, 2, 0, 1)),
+    )
+    save(f"{base_name}_goldenBias2Grad.out", golden_grads[4])
 
 def gen_test_case_pooling(input_shape, pool_size, stride, padding, pooling, base_name, gen_in):
     if gen_in:
-        input_data = gen_input(base_name + ".in", input_shape)
+        input_data = gen_input(f"{base_name}.in", input_shape)
     else:
-        with open(base_name+".in", 'rb') as f:
+        with open(f"{base_name}.in", 'rb') as f:
             input_data = np.fromfile(f, dtype=np.float32)
             input_data=np.reshape(input_data, input_shape)
     golden_pooling, golden_grad_input = pooling2d_tf(input_data, pool_size, stride, padding, pooling)
-    if (pooling == "global_average" or pooling == "global_max"):
-        save(base_name+"_goldenPooling2D"+pooling+".out", golden_pooling)
+    if pooling in ["global_average", "global_max"]:
+        save(f"{base_name}_goldenPooling2D{pooling}.out", golden_pooling)
     else:
-        save(base_name+"_goldenPooling2D"+pooling+".out", np.transpose(golden_pooling,(0,3,1,2)))
-    save(base_name+"_goldenPooling2D"+pooling+"Grad.out", np.transpose(golden_grad_input,(0,3,1,2)))
+        save(
+            f"{base_name}_goldenPooling2D{pooling}.out",
+            np.transpose(golden_pooling, (0, 3, 1, 2)),
+        )
+    save(
+        f"{base_name}_goldenPooling2D{pooling}Grad.out",
+        np.transpose(golden_grad_input, (0, 3, 1, 2)),
+    )
 
 ##
 # @brief generate fc test case data for forward and backward pass with loss

@@ -39,7 +39,7 @@ def get_util_path():
     current_path = os.path.abspath(os.path.dirname(__file__))
     parent_path = os.path.abspath(os.path.dirname(current_path))
     target_path = os.path.abspath(os.path.dirname(parent_path))
-    return os.path.dirname(target_path) + '/tools/pyutils/'
+    return f'{os.path.dirname(target_path)}/tools/pyutils/'
 
 # add pyutils path to sys.path
 sys.path.append(get_util_path())

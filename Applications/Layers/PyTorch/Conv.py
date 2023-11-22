@@ -47,8 +47,7 @@ class NeuralNetwork(nn.Module):
         self.NN_stack = nn.Sequential(nn.Conv2d(3, 3, kernel_size=3, stride=2, padding=1))
 
     def forward(self, x):
-        logits = self.NN_stack(x)
-        return logits
+        return self.NN_stack(x)
 
 
 def train(dataloader, model, loss_fn, optimizer):

@@ -26,7 +26,7 @@ def get_util_path():
     current_path = os.path.abspath(os.path.dirname(__file__))
     parent_path = os.path.abspath(os.path.dirname(current_path))
     target_path = os.path.abspath(os.path.dirname(parent_path))
-    return os.path.dirname(target_path) + '/tools/pyutils/'
+    return f'{os.path.dirname(target_path)}/tools/pyutils/'
 
 # add pyutils path to sys.path
 sys.path.append(get_util_path())
@@ -66,7 +66,7 @@ best_loss = 1e+10
 for epoch in range(epochs):
     epoch_train_loss = 0
     epoch_valid_loss = 0
-    for idx, (img, bbox, cls) in enumerate(train_loader):
+    for img, bbox, cls in train_loader:
         model.train()
         optimizer.zero_grad()
         # model prediction
@@ -87,11 +87,11 @@ for epoch in range(epochs):
                          cls)
         # back prop
         loss.backward()
-        optimizer.step()  
+        optimizer.step()
         # scheduler.step()
         epoch_train_loss += loss.item()
 
-    for idx, (img, bbox, cls) in enumerate(valid_loader):
+    for img, bbox, cls in valid_loader:
         model.eval()
         with torch.no_grad():
             # model prediction
@@ -111,12 +111,12 @@ for epoch in range(epochs):
                             bbox,
                             cls)
             epoch_valid_loss += loss.item()
-        
+
     if epoch_valid_loss < best_loss:
         best_loss = epoch_valid_loss
         torch.save(model.state_dict(), './best_model.pt')
         save_bin(model, 'best_model')
-        
+
     print("{}epoch, train loss: {:.4f}, valid loss: {:.4f}".format(
         epoch, epoch_train_loss / len(train_loader), epoch_valid_loss / len(valid_loader)))
 

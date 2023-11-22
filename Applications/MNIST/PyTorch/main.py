@@ -36,8 +36,7 @@ class Net(nn.Module):
         x = F.avg_pool2d(x, 2)
         x = torch.flatten(x, 1)
         x = self.fc1(x)
-        output = F.log_softmax(x, dim=1)
-        return output
+        return F.log_softmax(x, dim=1)
 
 
 def train(args, model, device, train_loader, optimizer, epoch):

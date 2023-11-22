@@ -44,7 +44,7 @@ BATCH_SIZE = 64
 
 
 print("-----TRIANING STRAT-----")
-for i in range(NUM_EPOCHS):
+for _ in range(NUM_EPOCHS):
     x_train = np.random.randint(0, 255, (64, 1, IMG_SIZE))
     y_train = np.random.randint(0, 1, (64, OUTPUT_SIZE)).astype(np.float32)
     x_train = (x_train / 255.0).astype(np.float32)

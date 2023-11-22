@@ -19,17 +19,15 @@ from gen24bBMP  import convert_to_bytes
 if sys.version_info < (3,):
     range = xrange
 
-def readbyte (filename):
-    F = open(filename, 'rb')
-    readbyte = F.read()
-    F.close()
+def readbyte(filename):
+    with open(filename, 'rb') as F:
+        readbyte = F.read()
     return readbyte
 
 
-def readlabel (filename):
-    F = open(filename, 'r')
-    line = F.readlines()
-    F.close()
+def readlabel(filename):
+    with open(filename, 'r') as F:
+        line = F.readlines()
     return line
 
 bytearr = readbyte(sys.argv[1])

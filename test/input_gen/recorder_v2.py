@@ -51,8 +51,8 @@ def _rand_like(shapes, scale=1, dtype=None):
 
     if not isinstance(dtype, list):
         dtype = [dtype] * len(shapes)
-    np_array = list([shape_to_np(s,t) for s,t in zip(shapes, dtype)])
-    return list([torch.tensor(t * scale) for t in np_array])
+    np_array = [shape_to_np(s,t) for s,t in zip(shapes, dtype)]
+    return [torch.tensor(t * scale) for t in np_array]
 
 
 ##
@@ -70,11 +70,11 @@ def record_v2(model, iteration, input_dims, label_dims, name, clip=False,
     # Each tensor contains
     # [<num_elements(int32)><data_point(float32)>...<data_point(float32)>]
 
-    file_name = name + ".nnmodelgolden"
+    file_name = f"{name}.nnmodelgolden"
     if os.path.isfile(file_name):
-        print("Warning: the file %s is being truncated and overwritten" % file_name)
+        print(f"Warning: the file {file_name} is being truncated and overwritten")
 
-    if optimizer == None:
+    if optimizer is None:
         optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
     def record_iteration(write_fn):
@@ -85,7 +85,7 @@ def record_v2(model, iteration, input_dims, label_dims, name, clip=False,
             labels = _rand_like(label_dims, dtype=float)
         write_fn(inputs)
         write_fn(labels)
-        write_fn(list(t for _, t in params_translated(model)))
+        write_fn([t for _, t in params_translated(model)])
         output, *losses = model(inputs, labels)
         write_fn(output)
 

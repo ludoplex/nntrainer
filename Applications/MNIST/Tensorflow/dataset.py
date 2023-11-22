@@ -50,28 +50,21 @@ def load_data(target):
     ValVector = np.zeros((v_buf_size,FEATURE_SIZE),dtype=np.float32)
     ValLabel = np.zeros((v_buf_size, TOTAL_LABEL_SIZE),dtype=np.float32)
 
-    #read Input & Label
+    with open('mnist_trainingSet.dat','rb') as fin:
+        for i in range(v_buf_size):
+            for j in range(FEATURE_SIZE):
+                data_str = fin.read(4)
+                ValVector[i,j] = struct.unpack('f',data_str)[0]
+            for j in range(TOTAL_LABEL_SIZE):
+                data_str = fin.read(4)
+                ValLabel[i,j] = struct.unpack('f',data_str)[0]
+    with open('mnist_trainingSet.dat','rb') as fin:
+        for i in range(t_buf_size):
+            for j in range(FEATURE_SIZE):
+                data_str = fin.read(4)
+                InputVector[i,j] = struct.unpack('f',data_str)[0]
 
-    fin = open('mnist_trainingSet.dat','rb')
-    for i in range(v_buf_size):
-        for j in range(FEATURE_SIZE):
-            data_str = fin.read(4)
-            ValVector[i,j] = struct.unpack('f',data_str)[0]
-        for j in range(TOTAL_LABEL_SIZE):
-            data_str = fin.read(4)
-            ValLabel[i,j] = struct.unpack('f',data_str)[0]
-    fin.close()
-
-    # we are using same training data for validation to check how internal implementation is working
-    fin=open('mnist_trainingSet.dat','rb')
-    for i in range(t_buf_size):
-        for j in range(FEATURE_SIZE):
-            data_str = fin.read(4)
-            InputVector[i,j] = struct.unpack('f',data_str)[0]
-
-        for j in range(TOTAL_LABEL_SIZE):
-            data_str = fin.read(4)
-            InputLabel[i,j] = struct.unpack('f',data_str)[0]
-    fin.close()
-
+            for j in range(TOTAL_LABEL_SIZE):
+                data_str = fin.read(4)
+                InputLabel[i,j] = struct.unpack('f',data_str)[0]
     return InputVector, InputLabel, ValVector, ValLabel

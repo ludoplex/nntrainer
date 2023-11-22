@@ -92,8 +92,8 @@ def _klayer(tensor):
     return tensor._keras_history.layer
 
 
-_debug_default_formatter = lambda key, value: "\033[4;32mkey: {}\033[0m\n {}".format(
-    key, value
+_debug_default_formatter = (
+    lambda key, value: f"\033[4;32mkey: {key}\033[0m\n {value}"
 )
 ##
 # @brief Print debug information from the record
@@ -179,15 +179,11 @@ def train_step(model, optimizer, loss_fn, initial_input, label, writer_fn, **kwa
             input_indices = model.recorder__input_map[layer.name]
             inputs[layer.name] = [outp[i] for i in input_indices]
 
-        # loss = loss_fn(label, outp[-1])
-        loss = []
-        if kwargs.get("multi_out", None) != None:
-            multi_out = kwargs.get("multi_out", [])
-        else:
+        if kwargs.get("multi_out", None) is None:
             multi_out = [-1]
-        for i in multi_out:
-            loss.append(loss_fn(label, outp[i]))
-
+        else:
+            multi_out = kwargs.get("multi_out", [])
+        loss = [loss_fn(label, outp[i]) for i in multi_out]
     for layer in iter_model(model):
 
         if isinstance(layer, MultiOutLayer):
@@ -253,11 +249,6 @@ def train_step(model, optimizer, loss_fn, initial_input, label, writer_fn, **kwa
 ##
 # @brief inference_step of the result
 def inference_step(loss_fn_str, initial_input, label, writer_fn):
-    # Not yet implemented
-    # because loss function with fromLogit is used, last layer fc layer should be added for the inference step
-    if loss_fn_str == "cross_sigmoid" or loss_fn_str == "cross_entropy":
-        # add last activation layer
-        pass
     raise NotImplementedError("Not Implemented yet")
 
 
@@ -283,9 +274,9 @@ def generate_recordable_model(
             current_output = layer(outputs[-1])
             outputs.append(current_output)
 
-    if isinstance(model, K.models.Model) == False:
+    if not isinstance(model, K.models.Model):
         # omit last activation layer if cross softmax or cross_sigmoid
-        if loss_fn_str == "cross_softmax" or loss_fn_str == "cross_sigmoid":
+        if loss_fn_str in ["cross_softmax", "cross_sigmoid"]:
             if isinstance(_klayer(outputs[-1]), K.layers.Activation):
                 outputs = outputs[:-1]
 
@@ -376,7 +367,7 @@ def record(
     **kwargs,
 ):
     if os.path.isfile(file_name):
-        print("Warning: the file %s is being truncated and overwritten" % file_name)
+        print(f"Warning: the file {file_name} is being truncated and overwritten")
 
     loss_fn = _get_loss_fn(loss_fn_str)
     model = generate_recordable_model(
@@ -417,7 +408,7 @@ def record_single(layer, input_shape, test_name, call_args={}, input_type='int')
 
     with tf.GradientTape(persistent=True) as tape:
         if isinstance(inputs, list):
-            list([tape.watch(inp) for inp in inputs])
+            [tape.watch(inp) for inp in inputs]
         else:
             tape.watch(inputs)
         outputs = layer.call(inputs, **call_args)
@@ -432,7 +423,7 @@ def record_single(layer, input_shape, test_name, call_args={}, input_type='int')
     except AttributeError:
         pass
 
-    with open(test_name + ".nnlayergolden", "wb") as f:
+    with open(f"{test_name}.nnlayergolden", "wb") as f:
         writer = _get_writer(f)
 
         def write_tensor(tensors):
@@ -466,7 +457,7 @@ def record_single_fp16(layer, input_shape, test_name, call_args={}, input_type='
 
     with tf.GradientTape(persistent=True) as tape:
         if isinstance(inputs, list):
-            list([tape.watch(inp) for inp in inputs])
+            [tape.watch(inp) for inp in inputs]
         else:
             tape.watch(inputs)
         outputs = layer.call(inputs, **call_args)
@@ -481,7 +472,7 @@ def record_single_fp16(layer, input_shape, test_name, call_args={}, input_type='
     except AttributeError:
         pass
 
-    with open(test_name + ".nnlayergolden", "wb") as f:
+    with open(f"{test_name}.nnlayergolden", "wb") as f:
         writer = _get_writer(f)
 
         def write_tensor_fp16(tensors):
@@ -516,7 +507,7 @@ def record_single_embedding_mixed(layer, input_shape, test_name, call_args={}, i
 
     with tf.GradientTape(persistent=True) as tape:
         if isinstance(inputs, list):
-            list([tape.watch(inp) for inp in inputs])
+            [tape.watch(inp) for inp in inputs]
         else:
             tape.watch(inputs)
         outputs = layer.call(inputs, **call_args)
@@ -531,7 +522,7 @@ def record_single_embedding_mixed(layer, input_shape, test_name, call_args={}, i
     except AttributeError:
         pass
 
-    with open(test_name + ".nnlayergolden", "wb") as f:
+    with open(f"{test_name}.nnlayergolden", "wb") as f:
         writer = _get_writer(f)
         def write_tensor(tensors):
             if not isinstance(tensors, list):
@@ -571,7 +562,7 @@ def record_single_embedding_fp32(layer, input_shape, test_name, call_args={}, in
 
     with tf.GradientTape(persistent=True) as tape:
         if isinstance(inputs, list):
-            list([tape.watch(inp) for inp in inputs])
+            [tape.watch(inp) for inp in inputs]
         else:
             tape.watch(inputs)
         outputs = layer.call(inputs, **call_args)
@@ -586,7 +577,7 @@ def record_single_embedding_fp32(layer, input_shape, test_name, call_args={}, in
     except AttributeError:
         pass
 
-    with open(test_name + ".nnlayergolden", "wb") as f:
+    with open(f"{test_name}.nnlayergolden", "wb") as f:
         writer = _get_writer(f)
         def write_tensor(tensors):
             if not isinstance(tensors, list):

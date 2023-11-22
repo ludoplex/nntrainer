@@ -15,14 +15,14 @@ import torch
 class FCUnroll(torch.nn.Module):
     def __init__(self, unroll_for = 1, num_fc = 1):
         super().__init__()
-        self.fcs = torch.nn.ModuleList([torch.nn.Linear(1, 1) for i in range(num_fc)])
+        self.fcs = torch.nn.ModuleList([torch.nn.Linear(1, 1) for _ in range(num_fc)])
         self.unroll_for = unroll_for
         # self.loss = torch.nn.MSELoss()
         self.loss = torch.nn.Identity()
 
     def forward(self, inputs, labels):
         output = inputs[0]
-        for i in range(self.unroll_for):
+        for _ in range(self.unroll_for):
             for fc in self.fcs:
                 output = fc(output)
         loss = self.loss(output)

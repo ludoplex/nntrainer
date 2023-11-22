@@ -89,11 +89,11 @@ if __name__ == "__main__":
     hidden_layer2_trainable = True
 
     for i, param in enumerate(model.hidden_layer1.parameters()):
-        if i == 0 or i == 1:
+        if i in [0, 1]:
             param.requires_grad = hidden_layer1_trainable
 
     for i, param in enumerate(model.hidden_layer2.parameters()):
-        if i == 0 or i == 1:
+        if i in [0, 1]:
             param.requires_grad = hidden_layer2_trainable
 
     loss_fn = nn.MSELoss()

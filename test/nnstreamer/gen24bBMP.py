@@ -29,10 +29,7 @@ def convert_to_bytes(data):
     @return     : bytes converted from the data
     """
 
-    if isinstance(data, bytes):
-        return data
-    else:
-        return pack("<B", data)
+    return data if isinstance(data, bytes) else pack("<B", data)
 
 ##
 # @brief Save bitmap "data" to "filename"
@@ -56,7 +53,7 @@ def saveBMP(filename, data, colorspace, width, height):
                 graphics += convert_to_bytes(data[pos + 2])
                 graphics += convert_to_bytes(data[pos + 1])
                 graphics += convert_to_bytes(data[pos])
-            for x in range(0, (width * 3) % 4):
+            for _ in range(0, (width * 3) % 4):
                 graphics += pack('<B', 0)
     elif colorspace == 'BGRx':
         bytes_per_px = 4
@@ -68,7 +65,7 @@ def saveBMP(filename, data, colorspace, width, height):
                 graphics += convert_to_bytes(data[pos])
                 graphics += convert_to_bytes(data[pos + 1])
                 graphics += convert_to_bytes(data[pos + 2])
-            for x in range(0, (width * 3) % 4):
+            for _ in range(0, (width * 3) % 4):
                 graphics += pack('<B', 0)
     elif colorspace == 'GRAY8':
         bytes_per_px = 1
@@ -78,7 +75,7 @@ def saveBMP(filename, data, colorspace, width, height):
             for w in range(0, width):
                 pos = bytes_per_px * (w + width * h)
                 graphics += convert_to_bytes(data[pos])
-            for x in range(0, (width * 3) % 4):
+            for _ in range(0, (width * 3) % 4):
                 graphics += pack('<B', 0)
     else:
         print('Unrecognized colorspace %', colorspace)
@@ -115,81 +112,81 @@ def gen_RGB():
     string = b''
     string_size = 0
     expected_size = 280 * 40 * 3
-    for i in range(0, 26):
+    for _ in range(0, 26):
         # White
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 255, 255, 255)
         # Yellow
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 255, 255, 0)
         # Light Blue
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 0, 255, 255)
         # Green
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 0, 255, 0)
         # Purple
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 255, 0, 255)
         # Red
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 255, 0, 0)
         # Blue
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 0, 0, 255)
-    for i in range(26, 30):
+    for _ in range(26, 30):
         # Blue
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 0, 0, 255)
         # Black
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 0, 0, 0)
         # Purple
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 255, 0, 255)
         # Black
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 0, 0, 0)
         # Light Blue
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 0, 255, 255)
         # Black
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 0, 0, 0)
         # White
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBB', 255, 255, 255)
-    for i in range(0, 46):
+    for _ in range(0, 46):
         # Dark Blue
         string_size = string_size + 46
         string += pack('BBB', 0, 0, 128)
-    for i in range(46, 93):
+    for _ in range(46, 93):
         # White
         string_size = string_size + 47
         string += pack('BBB', 255, 255, 255)
-    for i in range(93, 140):
+    for _ in range(93, 140):
         # Gray Blue
         string_size = string_size + 47
         string += pack('BBB', 0, 128, 255)
-    for i in range(140, 186):
+    for _ in range(140, 186):
         # Black
         string_size = string_size + 46
         string += pack('BBB', 0, 0, 0)
-    for i in range(186, 210):
+    for _ in range(186, 210):
         # Dark Gray
         string_size = string_size + 24
         string += pack('BBB', 19, 19, 19)
@@ -206,81 +203,81 @@ def gen_BGRx():
     string = b''
     string_size = 0
     expected_size = 280 * 40 * 4
-    for i in range(0, 26):
+    for _ in range(0, 26):
         # White
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 255, 255, 255, 255)
         # Yellow
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 0, 255, 255, 255)
         # Light Blue
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 255, 255, 0, 255)
         # Green
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 0, 255, 0, 255)
         # Purple
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 255, 0, 255, 255)
         # Red
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 0, 0, 255, 255)
         # Blue
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 255, 0, 0, 255)
-    for i in range(26, 30):
+    for _ in range(26, 30):
         # Blue
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 255, 0, 0, 255)
         # Black
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 0, 0, 0, 255)
         # Purple
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 255, 0, 255, 255)
         # Black
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 0, 0, 0, 255)
         # Light Blue
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 255, 255, 0, 255)
         # Black
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 0, 0, 0, 255)
         # White
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('BBBB', 255, 255, 255, 255)
-    for i in range(0, 46):
+    for _ in range(0, 46):
         # Dark Blue
         string_size = string_size + 46
         string += pack('BBBB', 128, 0, 0, 255)
-    for i in range(46, 93):
+    for _ in range(46, 93):
         # White
         string_size = string_size + 47
         string += pack('BBBB', 255, 255, 255, 255)
-    for i in range(93, 140):
+    for _ in range(93, 140):
         # Gray Blue
         string_size = string_size + 47
         string += pack('BBBB', 255, 128, 0, 255)
-    for i in range(140, 186):
+    for _ in range(140, 186):
         # Black
         string_size = string_size + 46
         string += pack('BBBB', 0, 0, 0, 255)
-    for i in range(186, 210):
+    for _ in range(186, 210):
         # Dark Gray
         string_size = string_size + 24
         string += pack('BBBB', 19, 19, 19, 255)
@@ -299,85 +296,85 @@ def gen_GRAY8():
     string = b''
     string_size = 0
     expected_size = 280 * 40
-    for i in range(0, 26):
+    for _ in range(0, 26):
         # 0xEB
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 235)
         # 0xD2
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 210)
         # 0xAA
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 170)
         # 0x91
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 145)
         # 0x6A
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 106)
         # 0x51
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 81)
         # 0x29
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 41)
-    for i in range(26, 30):
+    for _ in range(26, 30):
         # 0x29
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 41)
         # 0x10
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 16)
         # 0x6A
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 106)
         # 0x10
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 16)
         # 0xAA
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 170)
         # 0x10
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 16)
         # 0xEB
         string_size = string_size + 40
-        for j in range(0, 40):
+        for _ in range(0, 40):
             string += pack('B', 235)
-    for i in range(0, 46):
+    for _ in range(0, 46):
         # 0x10
         string_size = string_size + 46
         string += pack('B', 16)
-    for i in range(46, 93):
+    for _ in range(46, 93):
         # 0xEB
         string_size = string_size + 47
         string += pack('B', 235)
-    for i in range(93, 140):
+    for _ in range(93, 140):
         # 0x10
         string_size = string_size + 47
         string += pack('B', 16)
-    for i in range(140, 163):
+    for _ in range(140, 163):
         # 0x00
         string_size = string_size + 23
         string += pack('B', 0)
-    for i in range(163, 186):
+    for _ in range(163, 186):
         # 0x10
         string_size = string_size + 23
         string += pack('B', 16)
-    for i in range(186, 210):
+    for _ in range(186, 210):
         # 0x20
         string_size = string_size + 24
         string += pack('B', 32)
@@ -400,30 +397,35 @@ def gen_BMP_random(color_type, width, height, filename_prefix):
     # The result has no stride for other/tensor types.
 
     if color_type == 'BGRx':
-        for y in range(0, height):
-            for x in range(0, width):
+        for _ in range(0, height):
+            for _ in range(0, width):
                 pval = (random.randrange(256), random.randrange(256), random.randrange(256))
                 pixel = pack('BBBB', pval[2], pval[1], pval[0], 255)
                 string += pixel
                 string_size += 4
     elif color_type == 'GRAY8':
-        for y in range(0, height):
-            for x in range(0, width):
+        for _ in range(0, height):
+            for _ in range(0, width):
                 pval = random.randrange(256)
                 pixel = pack('B', pval)
                 string += pixel
                 string_size += size_per_pixel
     else:
         # Assume RGB
-        for y in range(0, height):
-            for x in range(0, width):
+        for _ in range(0, height):
+            for _ in range(0, width):
                 pval = (random.randrange(256), random.randrange(256), random.randrange(256))
                 pixel = pack('BBB', pval[0], pval[1], pval[2])
                 string += pixel
                 string_size += 3
 
-    saveBMP(filename_prefix + '_' + color_type + '_' + str(width) + 'x' + str(height) + '.bmp',
-            string, color_type, width, height)
+    saveBMP(
+        f'{filename_prefix}_{color_type}_{str(width)}x{str(height)}.bmp',
+        string,
+        color_type,
+        width,
+        height,
+    )
     return string, string_size, expected_size
 
 
@@ -467,19 +469,12 @@ def gen_BMP_stream(filename_prefix, golden_filename, num_sink):
             else:
                 string[7] += pack('BBB', 0, 255, 0)
             # red-cross-on-white, Frame 8
-            if x == y:
-                string[8] += pack('BBB', 255, 0, 0)
-            else:
-                string[8] += pack('BBB', 255, 255, 255)
+            string[8] += pack('BBB', 255, 0, 0) if x == y else pack('BBB', 255, 255, 255)
             # blue-cross-on-black, Frame 9
-            if x == y:
-                string[9] += pack('BBB', 0, 0, 255)
-            else:
-                string[9] += pack('BBB', 0, 0, 0)
-
+            string[9] += pack('BBB', 0, 0, 255) if x == y else pack('BBB', 0, 0, 0)
     with open(golden_filename, 'wb') as file:
         for i in range(0, 10):
-            saveBMP(filename_prefix + '_' + str(i) + '.bmp', string[i], 'RGB', 16, 16)
-            for j in range(0, num_sink):
+            saveBMP(f'{filename_prefix}_{str(i)}.bmp', string[i], 'RGB', 16, 16)
+            for _ in range(0, num_sink):
                 file.write(string[i])
     return string

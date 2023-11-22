@@ -19,22 +19,22 @@ def save_llama_for_nntrainer(params, n_layers, file, dtype):
     def save_embedding(weight):
         save_weight(weight)
 
-    def save_attention(weights, layer_name):        
-        save_weight(params[layer_name + 'input_layernorm' + '.weight'])
-        save_weight(params[layer_name + 'self_attn.q_proj' + '.weight'].permute(1, 0)) 
-        save_weight(params[layer_name + 'self_attn.k_proj' + '.weight'].permute(1, 0))
-        save_weight(params[layer_name + 'self_attn.v_proj' + '.weight'].permute(1, 0))
-        save_weight(params[layer_name + 'self_attn.o_proj' + '.weight'].permute(1, 0))
+    def save_attention(weights, layer_name):    
+        save_weight(params[f'{layer_name}input_layernorm.weight'])
+        save_weight(params[f'{layer_name}self_attn.q_proj.weight'].permute(1, 0))
+        save_weight(params[f'{layer_name}self_attn.k_proj.weight'].permute(1, 0))
+        save_weight(params[f'{layer_name}self_attn.v_proj.weight'].permute(1, 0))
+        save_weight(params[f'{layer_name}self_attn.o_proj.weight'].permute(1, 0))
 
     def save_feed_forward(weights, layer_name):
-        save_weight(params[layer_name + 'post_attention_layernorm' + '.weight'])
-        save_weight(params[layer_name + 'mlp.up_proj' + '.weight'].permute(1, 0))
-        save_weight(params[layer_name + 'mlp.gate_proj' + '.weight'].permute(1, 0))        
-        save_weight(params[layer_name + 'mlp.down_proj' + '.weight'].permute(1, 0))
+        save_weight(params[f'{layer_name}post_attention_layernorm.weight'])
+        save_weight(params[f'{layer_name}mlp.up_proj.weight'].permute(1, 0))
+        save_weight(params[f'{layer_name}mlp.gate_proj.weight'].permute(1, 0))
+        save_weight(params[f'{layer_name}mlp.down_proj.weight'].permute(1, 0))
 
     # save weights of embedding layer
     save_embedding(params['model.embed_tokens.weight'])
-    
+
     # save weights of attention layers & feed forward layers
     for layer_idx in range(n_layers):
         save_attention(params, 'model.layers.{}.'.format(layer_idx))
