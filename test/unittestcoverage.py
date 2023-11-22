@@ -60,7 +60,7 @@ def auditEvaders(gcovOutput, path):
 
   targetFiles = {}
   # Generate target file lists
-  dprint("Walking in " + path)
+  dprint(f"Walking in {path}")
   for root, dirs, files in os.walk(path):
     for file in files:
       # TODO 1 : Support other than C/C++
@@ -81,7 +81,7 @@ def auditEvaders(gcovOutput, path):
 
         # (-1, -1) means untracked file
         targetFiles[os.path.join(root, file)[len(path)+1:]] = (-1, -1)
-        dprint("Registered: " + os.path.join(root, file)[len(path)+1:])
+        dprint(f"Registered: {os.path.join(root, file)[len(path) + 1:]}")
 
 
   # From the begging, read each line and process "targetFiles"
@@ -89,8 +89,7 @@ def auditEvaders(gcovOutput, path):
   parsingForFile = ""
   lastlines = 0
   for line in out.splitlines():
-    m = re.match("File '(.+)'$", line)
-    if m:
+    if m := re.match("File '(.+)'$", line):
       if parserStatus == 1:
         sys.exit("[CRITIAL BUG] Status Mismatch: need to be 0")
 
@@ -100,18 +99,17 @@ def auditEvaders(gcovOutput, path):
           continue
         if re.match("^CMakeCXXCompilerId", parsingForFile): # ignore cmake artifacts
           continue
-        print("[CRITICAL BUG] Hey! File " + parsingForFile + " is not being found?")
+        print(f"[CRITICAL BUG] Hey! File {parsingForFile} is not being found?")
         targetFiles[parsingForFile] = (-1, -1)
       elif targetFiles[parsingForFile] == (-1, -1):
-        dprint("Matching new file: " + parsingForFile)
+        dprint(f"Matching new file: {parsingForFile}")
       else:
-        dprint("Duplicated file: " + parsingForFile)
+        dprint(f"Duplicated file: {parsingForFile}")
 
       parserStatus = 1 # File name parsed
       continue
 
-    m = re.match("Lines executed:(\d+.\d+)% of (\d+)$", line)
-    if m:
+    if m := re.match("Lines executed:(\d+.\d+)% of (\d+)$", line):
       if parserStatus == 0:
         continue
       if parserStatus == 2:
@@ -122,7 +120,7 @@ def auditEvaders(gcovOutput, path):
       lines = int(m.group(2))
 
       if parsingForFile not in targetFiles:
-        sys.exit("[CRITICAL BUG] targetFiles broken: not found: " + parsingForFile)
+        sys.exit(f"[CRITICAL BUG] targetFiles broken: not found: {parsingForFile}")
       (oldrate, oldlines) = targetFiles[parsingForFile]
 
       if oldlines == -1: # new instancfe
@@ -130,9 +128,9 @@ def auditEvaders(gcovOutput, path):
       elif lines == oldlines and rate > oldrate: # overwrite
         targetFiles[parsingForFile] = (rate, lines)
         # anyway, in this mechanis, this can't happen
-        sys.exit("[CRITICAL BUG] file " + parsingForFile + " occurs twice??? case 1")
+        sys.exit(f"[CRITICAL BUG] file {parsingForFile} occurs twice??? case 1")
       else:
-        sys.exit("[CRITICAL BUG] file " + parsingForFile + " occurs twice??? case 2")
+        sys.exit(f"[CRITICAL BUG] file {parsingForFile} occurs twice??? case 2")
       continue
 
     if re.match("Creating '", line):
@@ -144,7 +142,7 @@ def auditEvaders(gcovOutput, path):
     if re.match("^\s*$", line):
       continue
 
-    sys.exit("[CRITICAL BUG] incorrect gcov output: " + line)
+    sys.exit(f"[CRITICAL BUG] incorrect gcov output: {line}")
 
   totalTestedLine = 0
   totalAllLine = 0
@@ -154,21 +152,21 @@ def auditEvaders(gcovOutput, path):
     if lines == -1: # untracked file
       # CAUTION! wc does line count of untracked files. it counts lines differently
       # TODO: Count lines with the policy of gcov
-      linecount = os.popen("wc -l " + os.path.join(path, filename)).read()
+      linecount = os.popen(f"wc -l {os.path.join(path, filename)}").read()
       m = re.match("^(\d+)", linecount)
       if not m:
-        sys.exit("Cannot read proper wc results for " + filename)
+        sys.exit(f"Cannot read proper wc results for {filename}")
       lines = int(m.group(1))
       rate = 0.0
       print("Untracked File Found!!!")
-      print("[" + filename + "] : 0% of " + m.group(1) + " lines")
+      print(f"[{filename}] : 0% of {m.group(1)} lines")
 
     totalAllLine += lines
     totalTestedLine += int((lines * rate / 100.0) + 0.5)
 
   rate = 100.0 * totalTestedLine / totalAllLine
   print("=======================================================")
-  print("Lines: " + str(totalAllLine) + "  Covered Rate: " + str(rate) + "%")
+  print(f"Lines: {str(totalAllLine)}  Covered Rate: {str(rate)}%")
   print("=======================================================")
 
 ## @brief Do the check for unit test coverage on the given path
@@ -186,31 +184,26 @@ def check_component(path):
 
   # If path/build does not exist, try path/../build, path/../../build, ... (limit = 5)
   while ((not os.path.isdir(buildpath)) and searchlimit > 0):
-    searchlimit = searchlimit - 1
+    searchlimit -= 1
     buildpathconst = os.path.join(buildpathconst, "..")
     buildpath = os.path.join(buildpathconst, "build")
 
   # Get gcov report from unittests
-  out = os.popen("gcov -p -r -s " + path + " `find " + buildpath +
-                 " -name *.gcno`").read()
+  out = os.popen(f"gcov -p -r -s {path} `find {buildpath} -name *.gcno`").read()
   dprint(out)
 
   total_lines = 0
   total_covered = 0
-  total_rate = 0.0
   # Calculate a line coverage per file
   for each_line in out.splitlines():
-    m = re.match("Lines executed:(\d+.\d+)% of (\d+)$", each_line)
-    if m:
+    if m := re.match("Lines executed:(\d+.\d+)% of (\d+)$", each_line):
       rate = float(m.group(1))
       lines = int(m.group(2))
 
       total_lines = total_lines + lines
       total_covered = total_covered + (rate * lines)
 
-  if total_lines > 0:
-    total_rate = total_covered / total_lines
-
+  total_rate = total_covered / total_lines if total_lines > 0 else 0.0
   return (total_lines, total_rate)
   # Call auditEvaders(out, path) if we really become paranoid.
 
@@ -232,7 +225,7 @@ def cmd_module(paths):
     return -1
 
   print("\n\n===========================================================")
-  print("Paths for test coverage " + str(paths))
+  print(f"Paths for test coverage {str(paths)}")
   print("%d Lines with %0.2f%% unit test coverage" % (lines, rate))
   print("===========================================================\n\n\n")
   return 0
@@ -254,9 +247,13 @@ def analyzeEveryFirstCMakeListsTxt(path):
       coveredLines = int((rate * float(lines) + 0.5) / 100.0)
       countLines = countLines + lines
       countCoveredLines = countCoveredLines + coveredLines
-      print("[ROS Component]" + str(path) + ": " + str(lines) + " Lines with " + str(rate) + "% unit test coverage")
+      print(
+          f"[ROS Component]{str(path)}: {str(lines)} Lines with {str(rate)}% unit test coverage"
+      )
       return 0
-    print("[Warning] " + str(path) + " has CMakeLists.txt but not build directory. This may occur if you build with app option")
+    print(
+        f"[Warning] {str(path)} has CMakeLists.txt but not build directory. This may occur if you build with app option"
+    )
     return 0
 
   filenames = os.listdir(path)
@@ -272,7 +269,9 @@ def analyzeEveryFirstCMakeListsTxt(path):
 def cmd_all(path):
   analyzeEveryFirstCMakeListsTxt(path)
   print("\n\n===========================================================")
-  print("Total Lines = " + str(countLines) + " / Covered Lines = " + str(countCoveredLines) + " ( " + str(100.0 * countCoveredLines / countLines) + "% )")
+  print(
+      f"Total Lines = {str(countLines)} / Covered Lines = {str(countCoveredLines)} ( {str(100.0 * countCoveredLines / countLines)}% )"
+  )
   print("===========================================================\n\n\n")
   return 0
 

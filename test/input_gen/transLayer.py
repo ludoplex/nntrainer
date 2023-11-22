@@ -26,7 +26,7 @@ class AbstractTransLayer(K.layers.Layer):
     def __init__(self, tf_layer, *args, **kwargs):
         if not isinstance(tf_layer, K.layers.Layer):
             raise ValueError("tf_layer must be type of keras layer")
-        super().__init__(*args, **kwargs, name=tf_layer.name + "/translated")
+        super().__init__(*args, **kwargs, name=f"{tf_layer.name}/translated")
         self.tf_layer = tf_layer
         self.call.__func__.__signature__ = signature(self.tf_layer.call)
         self.has_training = "training" in inspect.getfullargspec(self.call).args
@@ -201,7 +201,7 @@ class LayerNormTransLayer(IdentityTransLayer):
         # Assumes that batch is not included in axis.
         # check channel is in axis. If it is permute weight.
         if 3 in axis:
-            perm = [i for i in range(len(axis))]
+            perm = list(range(len(axis)))
             perm = [perm[-1]] + perm[:-1]
             return [tf.transpose(weight, perm=perm) for weight in weights]
         return weights
@@ -223,7 +223,9 @@ class MultiOutLayer(IdentityTransLayer):
         super().__init__(tf_layer, *args, **kwargs)
 
         # this enables seperating gradient one by one
-        self.stub_layers = [K.layers.Lambda(lambda x: x + 0) for i in range(num_output)]
+        self.stub_layers = [
+            K.layers.Lambda(lambda x: x + 0) for _ in range(num_output)
+        ]
 
     ##
     # @brief call function
@@ -259,11 +261,10 @@ class RNNCELL_LSTMCellTransLayer(IdentityTransLayer):
 class GRUTransLayer(IdentityTransLayer):
     def to_nntr_weights(self, tensorOrList):
         bias = tensorOrList[2]
-        if bias.shape.rank == 2:
-            bias_ih, bias_hh = bias[0], bias[1]
-            return [tensorOrList[0], tensorOrList[1], bias_ih, bias_hh]
-        else:
+        if bias.shape.rank != 2:
             return tensorOrList
+        bias_ih, bias_hh = bias[0], bias[1]
+        return [tensorOrList[0], tensorOrList[1], bias_ih, bias_hh]
 
     def to_nntr_trainable_weights(self, tensorOrList):
         return self.to_nntr_weights(tensorOrList)
@@ -285,11 +286,10 @@ class GRUCellTransLayer(IdentityTransLayer):
 
     def to_nntr_weights(self, tensorOrList):
         bias = tensorOrList[2]
-        if bias.shape.rank == 2:
-            bias_ih, bias_hh = bias[0], bias[1]
-            return [tensorOrList[0], tensorOrList[1], bias_ih, bias_hh]
-        else:
+        if bias.shape.rank != 2:
             return tensorOrList
+        bias_ih, bias_hh = bias[0], bias[1]
+        return [tensorOrList[0], tensorOrList[1], bias_ih, bias_hh]
 
     def to_nntr_trainable_weights(self, tensorOrList):
         return self.to_nntr_weights(tensorOrList)

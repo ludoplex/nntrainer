@@ -27,7 +27,7 @@ def register_for_(classes):
 
         for cls_ in classes:
             if isinstance(cls_, already_registered_classes):
-                raise ValueError("class is already registered %s" % cls_.__name__)
+                raise ValueError(f"class is already registered {cls_.__name__}")
 
     def wrapper(func):
         handler_book.append((classes, func))
@@ -44,11 +44,10 @@ def fc_translate(model):
     params = [(name, tensor.detach()) for name, tensor in model.named_parameters()]
     def transpose_(weight):
         return (weight[0], weight[1].transpose(1, 0))
-    if len(params) == 2:
-        new_params = [transpose_(params[0]), params[1]]
-    else:
-        new_params = [transpose_(params[0])]
-    yield from new_params
+
+    yield from [transpose_(params[0]), params[1]] if len(params) == 2 else [
+        transpose_(params[0])
+    ]
 
 @register_for_((torch.nn.BatchNorm1d, torch.nn.BatchNorm2d))
 def bn_translate(model):
@@ -82,8 +81,7 @@ def rnn_lstm_translate(model):
     def transpose_(weight):
         return (weight[0], weight[1].transpose(1, 0))
 
-    new_params = [transpose_(params[0]), transpose_(params[1]), params[2], params[3]]
-    yield from new_params
+    yield from [transpose_(params[0]), transpose_(params[1]), params[2], params[3]]
 
 @register_for_((torch.nn.GRUCell))
 def gru_translate(model):
@@ -102,9 +100,7 @@ def gru_translate(model):
         return reordered_weights
 
     transposed_params = [transpose_(params[0]), transpose_(params[1]), params[2], params[3]]
-    new_params = reorder_weights(transposed_params)
-
-    yield from new_params
+    yield from reorder_weights(transposed_params)
 
 @register_for_((torch.nn.MultiheadAttention))
 def multi_head_attention_translate(model):
@@ -138,12 +134,21 @@ def multi_head_attention_translate(model):
     if model.in_proj_bias is not None:
         out_proj_bias = getParamByName('out_proj.bias')
 
-    if model.in_proj_bias is None:
-        new_params = [transpose_(q_proj_weight), transpose_(k_proj_weight), transpose_(v_proj_weight), transpose_(out_proj_weight)]
-    else:
-        new_params = [transpose_(q_proj_weight), q_proj_bias, transpose_(k_proj_weight), k_proj_bias, transpose_(v_proj_weight), v_proj_bias, transpose_(out_proj_weight), out_proj_bias]
-
-    yield from new_params
+    yield from [
+        transpose_(q_proj_weight),
+        transpose_(k_proj_weight),
+        transpose_(v_proj_weight),
+        transpose_(out_proj_weight),
+    ] if model.in_proj_bias is None else [
+        transpose_(q_proj_weight),
+        q_proj_bias,
+        transpose_(k_proj_weight),
+        k_proj_bias,
+        transpose_(v_proj_weight),
+        v_proj_bias,
+        transpose_(out_proj_weight),
+        out_proj_bias,
+    ]
 
 @register_for_(torch.nn.TransformerEncoderLayer)
 def transformer_encoder_translate(model):
@@ -155,7 +160,7 @@ def transformer_encoder_translate(model):
         for registered_classes, fn in handler_book:
             if isinstance(module, registered_classes):
                 module = fn(module)
-                module = list((n, t) for n, t in module)
+                module = list(module)
                 ret += module
                 break
     yield from ret
@@ -170,7 +175,7 @@ def transformer_decoder_translate(model):
         for registered_classes, fn in handler_book:
             if isinstance(module, registered_classes):
                 module = fn(module)
-                module = list((n, t) for n, t in module)
+                module = list(module)
                 ret += module
                 break
     yield from ret
@@ -186,12 +191,12 @@ def translate(model):
     yield from default_translate_(model)
 
 def save_bin(model, name):
-    file_name = './' + name + ".bin"
+    file_name = f'./{name}.bin'
     if os.path.isfile(file_name):
-        print("Warning: the file %s is being truncated and overwritten" % file_name)
+        print(f"Warning: the file {file_name} is being truncated and overwritten")
 
     with open(file_name, 'wb') as f:
-        param_list = list(t for _, t in params_translated(model))
+        param_list = [t for _, t in params_translated(model)]
 
         for param in param_list:            
             param.detach().cpu().numpy().tofile(f)

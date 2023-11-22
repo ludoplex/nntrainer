@@ -96,8 +96,8 @@ class MultiHeadAttention(torch.nn.Module):
 
         return output, loss
 
-    def input_label_reader(input_dims, label_dims, input_dtype):
-        query_dim, key_dim, value_dim, *left_dim = input_dims
+    def input_label_reader(self, label_dims, input_dtype):
+        query_dim, key_dim, value_dim, *left_dim = self
         query_dtype, key_dtype, value_dtype, *left_dtype = input_dtype
         assert(query_dtype == key_dtype == value_dtype)
         if left_dim != []:
@@ -156,8 +156,8 @@ class TransformerEncoderLayer(torch.nn.Module):
 
         return output, loss
 
-    def input_label_reader(input_dims, label_dims, input_dtypes):
-        input_dim, *left_dim = input_dims
+    def input_label_reader(self, label_dims, input_dtypes):
+        input_dim, *left_dim = self
         input_dtype, *left_dtype = input_dtypes
         if left_dim != []:
             mask_dim = left_dim[0]
@@ -196,24 +196,23 @@ class TransformerDecoderLayer(torch.nn.Module):
 
         return output, loss
 
-    def input_label_reader(input_dims, label_dims, input_dtypes):
-        tgt_dim, memory_dim, *mask_dims = input_dims
+    def input_label_reader(self, label_dims, input_dtypes):
+        tgt_dim, memory_dim, *mask_dims = self
         tgt_dtype, memory_dtype, *mask_dtypes = input_dtypes
-        if mask_dims != []:
-            if mask_dtypes[0] == bool:
-                # Since nntrainer does not support bool type tensor yet, convert mask to float type
-                # todo: return bool type mask tensor
-                masks = [torch.randn(dim) > 0.5 for dim in mask_dims]
-                new_attn_masks = [torch.zeros_like(mask, dtype=torch.float32) for mask in masks]
-                for mask, new_attn_mask in zip(masks, new_attn_masks):
-                    new_attn_mask.masked_fill_(mask, float("-inf"))
-                masks = new_attn_masks
-            elif mask_dtypes[0] == int:
-                masks = [torch.randint(0, 1, mask_dim, torch.int32) for mask_dim in mask_dims]
-            else:
-                masks = _rand_like(mask_dims, -1e9, mask_dtypes)
-        else:
+        if mask_dims == []:
             masks = []
+        elif mask_dtypes[0] == bool:
+            # Since nntrainer does not support bool type tensor yet, convert mask to float type
+            # todo: return bool type mask tensor
+            masks = [torch.randn(dim) > 0.5 for dim in mask_dims]
+            new_attn_masks = [torch.zeros_like(mask, dtype=torch.float32) for mask in masks]
+            for mask, new_attn_mask in zip(masks, new_attn_masks):
+                new_attn_mask.masked_fill_(mask, float("-inf"))
+            masks = new_attn_masks
+        elif mask_dtypes[0] == int:
+            masks = [torch.randint(0, 1, mask_dim, torch.int32) for mask_dim in mask_dims]
+        else:
+            masks = _rand_like(mask_dims, -1e9, mask_dtypes)
         inputs = _rand_like([tgt_dim, memory_dim], dtype=[tgt_dtype, memory_dtype] if tgt_dtype is not None and memory_dtype is not None else float) + masks
         labels = _rand_like(label_dims, dtype=float)
         return inputs, labels
@@ -236,24 +235,23 @@ class Transformer(torch.nn.Module):
 
         return output, loss
 
-    def input_label_reader(input_dims, label_dims, input_dtypes):
-        src_dim, tgt_dim, *mask_dims = input_dims
+    def input_label_reader(self, label_dims, input_dtypes):
+        src_dim, tgt_dim, *mask_dims = self
         src_dtype, tgt_dtype, *mask_dtypes = input_dtypes
-        if mask_dims != []:
-            if mask_dtypes[0] == bool:
-                # Since nntrainer does not support bool type tensor yet, convert mask to float type
-                # todo: return bool type mask tensor
-                masks = [torch.randn(dim) > 0.5 for dim in mask_dims]
-                new_attn_masks = [torch.zeros_like(mask, dtype=torch.float32) for mask in masks]
-                for mask, new_attn_mask in zip(masks, new_attn_masks):
-                    new_attn_mask.masked_fill_(mask, float("-inf"))
-                masks = new_attn_masks
-            elif mask_dtypes[0] == int:
-                masks = [torch.randint(0, 1, mask_dim, torch.int32) for mask_dim in mask_dims]
-            else:
-                masks = _rand_like(mask_dims, -1e9, mask_dtypes)
-        else:
+        if mask_dims == []:
             masks = []
+        elif mask_dtypes[0] == bool:
+            # Since nntrainer does not support bool type tensor yet, convert mask to float type
+            # todo: return bool type mask tensor
+            masks = [torch.randn(dim) > 0.5 for dim in mask_dims]
+            new_attn_masks = [torch.zeros_like(mask, dtype=torch.float32) for mask in masks]
+            for mask, new_attn_mask in zip(masks, new_attn_masks):
+                new_attn_mask.masked_fill_(mask, float("-inf"))
+            masks = new_attn_masks
+        elif mask_dtypes[0] == int:
+            masks = [torch.randint(0, 1, mask_dim, torch.int32) for mask_dim in mask_dims]
+        else:
+            masks = _rand_like(mask_dims, -1e9, mask_dtypes)
         inputs = _rand_like([src_dim, tgt_dim], dtype=[src_dtype, tgt_dtype] if src_dtype is not None and tgt_dtype is not None else float) + masks
         labels = _rand_like(label_dims, dtype=float)
         return inputs, labels
@@ -275,17 +273,16 @@ class FCRelu(torch.nn.Module):
     def getOptimizer(self):
         if not self.decay:
             return torch.optim.SGD(self.parameters(), lr=0.1)
-        else:
-            decay_params = []
-            non_decay_params = []
-            for name, params in self.named_parameters():
-                if name == 'fc.weight' or name == 'fc1.bias':
-                    decay_params.append(params)
-                else:
-                    non_decay_params.append(params)
-            return torch.optim.SGD([
-                {'params': non_decay_params},
-                {'params': decay_params, 'weight_decay': 0.9}], lr=0.1)
+        decay_params = []
+        non_decay_params = []
+        for name, params in self.named_parameters():
+            if name in ['fc.weight', 'fc1.bias']:
+                decay_params.append(params)
+            else:
+                non_decay_params.append(params)
+        return torch.optim.SGD([
+            {'params': non_decay_params},
+            {'params': decay_params, 'weight_decay': 0.9}], lr=0.1)
 
 # class for test non-trainable fc layer
 class NonTrainableFC(torch.nn.Module):

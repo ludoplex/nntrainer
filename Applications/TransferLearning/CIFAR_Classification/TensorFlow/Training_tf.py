@@ -62,29 +62,23 @@ def load_data():
     ValVector = np.zeros((TOTAL_LABEL_SIZE*TOTAL_VAL_DATA_SIZE,FEATURE_SIZE),dtype=np.float32)
     ValLabel = np.zeros((TOTAL_LABEL_SIZE*TOTAL_VAL_DATA_SIZE, TOTAL_LABEL_SIZE),dtype=np.float32)
 
-    #read Input & Label
+    with open('valSet.dat','rb') as fin:
+        for i in range(TOTAL_LABEL_SIZE*TOTAL_VAL_DATA_SIZE):
+            for j in range(FEATURE_SIZE):
+                data_str = fin.read(4)
+                ValVector[i,j] = struct.unpack('f',data_str)[0]
+            for j in range(TOTAL_LABEL_SIZE):
+                data_str = fin.read(4)
+                ValLabel[i,j] = struct.unpack('f',data_str)[0]
+    with open('trainingSet.dat','rb') as fin:
+        for i in range(TOTAL_LABEL_SIZE*data_size):
+            for j in range(FEATURE_SIZE):
+                data_str = fin.read(4)
+                InputVector[i,j] = struct.unpack('f',data_str)[0]
 
-    fin = open('valSet.dat','rb')
-    for i in range(TOTAL_LABEL_SIZE*TOTAL_VAL_DATA_SIZE):
-        for j in range(FEATURE_SIZE):
-            data_str = fin.read(4)
-            ValVector[i,j] = struct.unpack('f',data_str)[0]
-        for j in range(TOTAL_LABEL_SIZE):
-            data_str = fin.read(4)
-            ValLabel[i,j] = struct.unpack('f',data_str)[0]
-    fin.close()
-
-    fin=open('trainingSet.dat','rb')
-    for i in range(TOTAL_LABEL_SIZE*data_size):
-        for j in range(FEATURE_SIZE):
-            data_str = fin.read(4)
-            InputVector[i,j] = struct.unpack('f',data_str)[0]
-
-        for j in range(TOTAL_LABEL_SIZE):
-            data_str = fin.read(4)
-            InputLabel[i,j] = struct.unpack('f',data_str)[0]
-    fin.close()
-
+            for j in range(TOTAL_LABEL_SIZE):
+                data_str = fin.read(4)
+                InputLabel[i,j] = struct.unpack('f',data_str)[0]
     return InputVector, InputLabel, ValVector, ValLabel
 
 ##

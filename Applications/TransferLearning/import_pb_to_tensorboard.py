@@ -60,7 +60,7 @@ View your imported `.pb` model as a graph. """
 
         pb_visual_writer = summary.FileWriter(log_dir)
         pb_visual_writer.add_graph(sess.graph)
-        print("Model Imported. Visualize by running: " "tensorboard --logdir={}".format(log_dir))
+        print(f"Model Imported. Visualize by running: tensorboard --logdir={log_dir}")
 
 def main(unused_args):
     import_to_tensorboard(FLAGS.model_dir, FLAGS.log_dir)

@@ -44,8 +44,7 @@ class NeuralNetwork(nn.Module):
         self.NN_stack = nn.Sequential(nn.Linear(IMG_SIZE, 10), nn.ReLU(), nn.Flatten())
 
     def forward(self, x):
-        logits = self.NN_stack(x)
-        return logits
+        return self.NN_stack(x)
 
 
 def train(dataloader, model, loss_fn, optimizer):
